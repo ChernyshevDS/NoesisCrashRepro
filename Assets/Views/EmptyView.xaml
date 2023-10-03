@@ -8,5 +8,9 @@
 
     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Button Command="{Binding CrashBindingCommand}" Content="Crash by MultiBinding"/>
+
+        <Border Background="Gray" x:Name="border">
+            <TextBlock Text="Crash by HitTest" Margin="40"/>
+        </Border>
     </StackPanel>
 </UserControl>
