@@ -5,7 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 #endif
 
-namespace Brio.MRS.Views
+namespace Views
 {
     public partial class EmptyView : UserControl
     {

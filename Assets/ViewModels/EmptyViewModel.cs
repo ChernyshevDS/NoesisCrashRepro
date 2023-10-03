@@ -1,53 +1,130 @@
-using System;
+using MarkupExtensions;
+using Noesis;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows.Input;
 using UnityEngine;
 
-public class EmptyViewModel : MonoBehaviour, INotifyPropertyChanged
+namespace ViewModels
 {
-    [SerializeField]
-    private NoesisView noesisView;
-    private int intProp;
-
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    public int IntProp { get => intProp; set => SetProperty(ref intProp, value); }
-
-    void Start()
+    public class EmptyViewModel : MonoBehaviour, INotifyPropertyChanged
     {
-        noesisView.Content.DataContext = this;
-        StartCoroutine(IncrementProperty());
-    }
+        [SerializeField]
+        private NoesisView noesisView;
+        private Coroutine coroutine;
 
-    private IEnumerator IncrementProperty()
-    {
-        while (true)
+        private int intProp;
+        private ICommand updCommand;
+        private object childVM;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public int IntProp { get => intProp; set => SetProperty(ref intProp, value); }
+
+        public object ChildVM { get => childVM; set => SetProperty(ref childVM, value); }
+
+        public ICommand UpdCommand { get => updCommand; set => SetProperty(ref updCommand, value); }
+
+        void Start()
         {
-            yield return new WaitForSeconds(1f);
-            IntProp++;
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(storage, value))
-        {
-            return false;
+            noesisView.Content.DataContext = this;
+            UpdCommand = new DelegateCommand(HandleCommand);
         }
 
-        storage = value;
-        RaisePropertyChanged(propertyName);
-        return true;
+        private void HandleCommand()
+        {
+            if (coroutine == null)
+            { 
+                coroutine = StartCoroutine(IncrementProperty());
+            }
+            else
+            {
+                StopCoroutine(coroutine);
+                coroutine = null;
+            }
+        }
+
+        private IEnumerator IncrementProperty()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(0.1f);
+                IntProp++;
+
+                var dummyBinding = new Binding() { Source = null };
+                var localizedBinding = new Binding(nameof(LocalizedDataSource.LocalizedValue))
+                {
+                    Source = new LocalizedDataSource("Key"),
+                };
+                var multiBinding = new MultiBinding();
+                multiBinding.Mode = BindingMode.OneWay;
+                multiBinding.Converter = new FormattedTranslationTextConverter();
+
+                multiBinding.Bindings.Add(localizedBinding);
+                multiBinding.Bindings.Add(dummyBinding);
+            }
+        }
+
+        protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value))
+            {
+                return false;
+            }
+
+            storage = value;
+            RaisePropertyChanged(propertyName);
+            return true;
+        }
+
+        private void RaisePropertyChanged(string propertyName)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private void RaisePropertyChanged(string propertyName)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    public class ViewModelBase : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value))
+            {
+                return false;
+            }
+
+            storage = value;
+            RaisePropertyChanged(propertyName);
+            return true;
+        }
+
+        private void RaisePropertyChanged(string propertyName)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public class FirstVM : ViewModelBase
+    {
+        private string localizationKey;
+        private int value;
+
+        public string LocalizationKey { get => localizationKey; set => SetProperty(ref localizationKey, value); }
+
+        public int Value { get => value; set => SetProperty(ref this.value, value); }
+    }
+
+    public class SecondVM : ViewModelBase
+    {
+        private int value;
+
+        public int Value { get => value; set => SetProperty(ref this.value, value); }
+    }
+
+
+    public class InnerVM : ViewModelBase
+    {
+        private object inner;
+
+        public object Inner { get => inner; set => SetProperty(ref inner, value); }
+    }
 }

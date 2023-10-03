@@ -1,10 +1,46 @@
 <UserControl
-    x:Class="Brio.MRS.Views.EmptyView"
+    x:Class="Views.EmptyView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:loc="clr-namespace:MarkupExtensions"
+    xmlns:vm="clr-namespace:ViewModels"
     Background="White">
-    <TextBlock>
-        <Run Text="Int property: "/>
-        <Run Text="{Binding IntProp}"/>
-    </TextBlock>
+    <UserControl.Resources>
+        <DataTemplate DataType="{x:Type vm:FirstVM}">
+            <TextBlock>
+                <Run Text="FirstVM: "/>
+                <Run Text="{loc:Translate FirstKey, Arg0={Binding Value}}"/>
+                <LineBreak/>
+                <Run Text="Value: "/>
+                <Run Text="{Binding Value}"/>
+            </TextBlock>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:SecondVM}">
+            <TextBlock>
+                <Run Text="SecondVM: "/>
+                <Run Text="{loc:Translate SecondKey, Arg0={Binding Value}}"/>
+                <LineBreak/>
+                <Run Text="Value: "/>
+                <Run Text="{Binding Value}"/>
+            </TextBlock>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type vm:InnerVM}">
+            <ContentControl Content="{Binding Inner}"/>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Vertical">
+        <StackPanel Orientation="Horizontal">
+            <TextBlock>
+                <Run Text="Int property: "/>
+                <Run Text="{Binding IntProp}"/>
+            </TextBlock>
+        
+            <Button Command="{Binding UpdCommand}" Content="Switch"/>
+        </StackPanel>
+
+        <ContentControl Content="{Binding ChildVM}"/>
+    </StackPanel>
 </UserControl>
