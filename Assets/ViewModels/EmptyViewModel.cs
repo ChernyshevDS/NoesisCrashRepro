@@ -1,4 +1,3 @@
-using MarkupExtensions;
 using Noesis;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,22 +14,16 @@ namespace ViewModels
         private NoesisView noesisView;
         private Coroutine coroutine;
 
-        private int intProp;
-        private ICommand updCommand;
-        private object childVM;
+        private ICommand crashBindingCommand;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public int IntProp { get => intProp; set => SetProperty(ref intProp, value); }
-
-        public object ChildVM { get => childVM; set => SetProperty(ref childVM, value); }
-
-        public ICommand UpdCommand { get => updCommand; set => SetProperty(ref updCommand, value); }
+        public ICommand CrashBindingCommand { get => crashBindingCommand; set => SetProperty(ref crashBindingCommand, value); }
 
         void Start()
         {
             noesisView.Content.DataContext = this;
-            UpdCommand = new DelegateCommand(HandleCommand);
+            CrashBindingCommand = new DelegateCommand(HandleCommand);
         }
 
         private void HandleCommand()
@@ -51,18 +44,10 @@ namespace ViewModels
             while (true)
             {
                 yield return new WaitForSeconds(0.1f);
-                IntProp++;
 
                 var dummyBinding = new Binding() { Source = null };
-                var localizedBinding = new Binding(nameof(LocalizedDataSource.LocalizedValue))
-                {
-                    Source = new LocalizedDataSource("Key"),
-                };
                 var multiBinding = new MultiBinding();
                 multiBinding.Mode = BindingMode.OneWay;
-                multiBinding.Converter = new FormattedTranslationTextConverter();
-
-                multiBinding.Bindings.Add(localizedBinding);
                 multiBinding.Bindings.Add(dummyBinding);
             }
         }
@@ -101,30 +86,5 @@ namespace ViewModels
 
         private void RaisePropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    public class FirstVM : ViewModelBase
-    {
-        private string localizationKey;
-        private int value;
-
-        public string LocalizationKey { get => localizationKey; set => SetProperty(ref localizationKey, value); }
-
-        public int Value { get => value; set => SetProperty(ref this.value, value); }
-    }
-
-    public class SecondVM : ViewModelBase
-    {
-        private int value;
-
-        public int Value { get => value; set => SetProperty(ref this.value, value); }
-    }
-
-
-    public class InnerVM : ViewModelBase
-    {
-        private object inner;
-
-        public object Inner { get => inner; set => SetProperty(ref inner, value); }
     }
 }
