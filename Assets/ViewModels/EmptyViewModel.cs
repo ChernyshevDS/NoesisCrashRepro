@@ -14,28 +14,24 @@ namespace ViewModels
         private NoesisView noesisView;
         private Coroutine coroutine;
 
-        private ICommand crashBindingCommand;
+        private DelegateCommand crashBindingCommand;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public ICommand CrashBindingCommand { get => crashBindingCommand; set => SetProperty(ref crashBindingCommand, value); }
+        public DelegateCommand CrashBindingCommand { get => crashBindingCommand; set => SetProperty(ref crashBindingCommand, value); }
 
         void Start()
         {
             noesisView.Content.DataContext = this;
-            CrashBindingCommand = new DelegateCommand(HandleCommand);
+            CrashBindingCommand = new DelegateCommand(HandleCommand, () => coroutine == null);
         }
 
         private void HandleCommand()
         {
             if (coroutine == null)
-            { 
-                coroutine = StartCoroutine(IncrementProperty());
-            }
-            else
             {
-                StopCoroutine(coroutine);
-                coroutine = null;
+                coroutine = StartCoroutine(IncrementProperty());
+                crashBindingCommand.RaiseCanExecuteChanged();
             }
         }
 
